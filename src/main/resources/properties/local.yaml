@@ -1,0 +1,17 @@
+#Listener Config
+http:
+  host: "0.0.0.0"
+  port: "8085"
+  
+#http request config
+httprequest:
+    ttdhost: "0.0.0.0"
+    ttdport: "8081"
+    
+
+    dv360host: "0.0.0.0"
+    dv360port: "8082"
+    
+
+    Xandrhost: "0.0.0.0"
+    Xandrport: "8083"

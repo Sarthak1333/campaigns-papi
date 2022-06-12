@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+    <http:listener-config name="campaigns-pAPI-httpListenerConfig">
+        <http:listener-connection host="${http.host}" port="${http.port}" />
+    </http:listener-config>
+    <apikit:config name="campaigns-pAPI-config" api="campaigns-pAPI.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="dd4c3e5f-1971-4565-a9c7-591f7666ba06" >
+		<http:request-connection host="localhost" port="8081" />
+	</http:request-config>
+	<http:request-config name="HTTP_Request_configuration_TTD" doc:name="HTTP Request configuration" doc:id="06450af9-df5a-4a84-87fd-b2d02cc08705" >
+		<http:request-connection host="${httprequest.ttdhost}" port="${httprequest.ttdport}" />
+	</http:request-config>
+	<http:request-config name="HTTP_Request_configuration_DV360" doc:name="HTTP Request configuration" doc:id="360b9377-b176-4114-880b-2eeeaf2f80c0" >
+		<http:request-connection host="${httprequest.dv360host}" port="${httprequest.dv360port}" />
+	</http:request-config>
+	<http:request-config name="HTTP_Request_configuration_Xandr" doc:name="HTTP Request configuration" doc:id="1f8c9718-113a-40e9-91bf-1c2610245586" >
+		<http:request-connection host="${httprequest.Xandrhost}" port="${httprequest.Xandrport}" />
+	</http:request-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="9ac7989d-0afe-4046-bb6e-1f25e9696e28" file="properties/local.yaml" />
+	<flow name="campaigns-pAPI-main">
+        <http:listener config-ref="campaigns-pAPI-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="campaigns-pAPI-config" />
+    </flow>
+    <flow name="campaigns-pAPI-console">
+        <http:listener config-ref="campaigns-pAPI-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="campaigns-pAPI-config" />
+    </flow>
+    <flow name="put:\campaigns:application\json:campaigns-pAPI-config">
+        <logger level="INFO" message="put:\campaigns:application\json:campaigns-pAPI-config" />
+		<ee:transform doc:name="Transform Message" doc:id="87bfe6f1-fe92-42fe-8854-a2984449a31a" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="503f8647-d7bb-4061-89ad-10ac29d206fc" message="Payload received : #[payload]"/>
+		<scatter-gather doc:name="Scatter-Gather" doc:id="b64c193f-74c0-45b3-86c8-facd830cf879" >
+			<route >
+				<try doc:name="Try" doc:id="c69d4f25-1ca5-47c1-b68c-2b0e13b623e8">
+						<http:request method="POST" doc:name="Request" doc:id="3e8ceb6c-3717-4eb2-b084-505bd7f145b8" path="/api/insertion-orders" config-ref="HTTP_Request_configuration_TTD" responseTimeout="200000" />
+						<error-handler>
+						<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="b4364f32-3f17-4741-bb02-d3d20455056f" type="ANY">
+							<ee:transform doc:name="Transform Message" doc:id="9f4a153d-8028-4d3c-b62f-5ee4980017b6">
+								<ee:message>
+									<ee:set-payload resource="dataweave/error.dwl" />
+								</ee:message>
+							</ee:transform>
+							<logger level="INFO" doc:name="Logger" doc:id="3f1c81a8-d205-444c-a155-e2b368fccc44" message="#[payload]"/>
+						</on-error-continue>
+						</error-handler>
+					</try>
+			</route>
+			<route >
+				<try doc:name="Try" doc:id="c533441e-fc1b-4685-ad15-54ded1b02d3e">
+						<http:request method="POST" doc:name="Request" doc:id="387153d8-f822-44fc-9770-888256ebcbf0" path="/api/insertion-orders" config-ref="HTTP_Request_configuration_DV360" responseTimeout="200000" />
+						<error-handler>
+						<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="ea4692a9-0ea4-424c-aad3-f4666b8f6790" type="ANY">
+							<ee:transform doc:name="Transform Message" doc:id="d36c7e08-0d2f-49dc-be97-9a948e64e90b">
+								<ee:message>
+									<ee:set-payload resource="dataweave/error.dwl" />
+								</ee:message>
+							</ee:transform>
+							<logger level="INFO" doc:name="Logger" doc:id="49c9961d-f199-490c-9cfa-ab9c1276204f" message="#[payload]"/>
+						</on-error-continue>
+						</error-handler>
+					</try>
+			</route>
+			<route >
+				<try doc:name="Try" doc:id="3da407fb-b099-443d-b754-76284ca8b0c0">
+						<http:request method="POST" doc:name="Request" doc:id="f3ceed04-2886-425a-81fb-fb704be1d83a" config-ref="HTTP_Request_configuration_Xandr" path="/api/insertion-orders" responseTimeout="200000" />
+						<error-handler>
+						<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="7087a428-7fb6-4114-b567-89e82ffc7ff4" type="ANY">
+							<ee:transform doc:name="Transform Message" doc:id="18437546-074d-406c-92b3-73ffe31cba6a">
+								<ee:message>
+									<ee:set-payload resource="dataweave/error.dwl" />
+								</ee:message>
+							</ee:transform>
+							<logger level="INFO" doc:name="Logger" doc:id="6aad8b7d-d86f-4712-81cf-f8e136f63898" message="#[payload]"/>
+						</on-error-continue>
+						</error-handler>
+					</try>
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Transform Message" doc:id="a0472b26-6249-4c23-88c7-3efd779c011c" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+[
+	{
+		"FirstRoute": payload."0".payload
+	},
+	{
+		"SecondRoute": payload."1".payload
+	},
+	{
+		"ThirdRoute": payload."2".payload
+	}
+]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="2912ff82-b8a9-4ab7-882b-8ce04507e5de" message="#[payload]"/>
+		<!-- <ee:transform doc:name="Transform Message" doc:id="1e3fdb05-d1f7-4c7b-bc30-7ae586eb45b7" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+-&#45;&#45;
+[
+	{
+		status: payload.'0'.typedAttributes.statusCode,
+		"TTD": payload.'0'.typedValue
+	},
+	{
+		status: payload.'1'.typedAttributes.statusCode,
+		"DV360": payload.'1'.typedValue
+	},
+	{
+		status: payload.'2'.typedAttributes.statusCode,
+		"Xander": payload.'2'.typedValue
+	}
+	
+	]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform> -->
+    </flow>
+</mule>
