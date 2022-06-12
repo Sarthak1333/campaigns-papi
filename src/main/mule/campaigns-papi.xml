@@ -17,7 +17,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 	<http:request-config name="HTTP_Request_configuration_Xandr" doc:name="HTTP Request configuration" doc:id="1f8c9718-113a-40e9-91bf-1c2610245586" >
 		<http:request-connection host="${httprequest.Xandrhost}" port="${httprequest.Xandrport}" />
 	</http:request-config>
-	<configuration-properties doc:name="Configuration properties" doc:id="9ac7989d-0afe-4046-bb6e-1f25e9696e28" file="properties/local.yaml" />
+	<configuration-properties doc:name="Configuration properties" doc:id="9ac7989d-0afe-4046-bb6e-1f25e9696e28" file="properties/Sandbox.yaml" />
 	<flow name="campaigns-pAPI-main">
         <http:listener config-ref="campaigns-pAPI-httpListenerConfig" path="/api/*">
             <http:response statusCode="#[vars.httpStatus default 200]">
